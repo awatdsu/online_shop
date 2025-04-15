@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from backend.database import session_maker
+from backend.db import session_maker
 
 class BaseDao:
     model = None
@@ -9,3 +9,5 @@ class BaseDao:
             query = select(cls.model).filter_by(**filter_by)
             result = await session.execute(query)
             return result.scalar_one_or_none()
+
+        

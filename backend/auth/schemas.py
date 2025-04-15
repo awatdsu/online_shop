@@ -35,6 +35,19 @@ class UsernameLoginSchema(BaseModel):
     username: str = Field(default=..., min_length=4, max_length=50, description="Username")
     password: str = Field(...,min_length=8, max_length=50, description="Password, 8 to 50 symbols")
 
+class UserRegResponseSchema(BaseModel):
+    username: str
+    email: EmailStr
+    first_name: str
+    last_name: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str
+
 # class EmailLoginSchema(BaseModel):
 #     model_config = ConfigDict(from_attributes=True)
 
