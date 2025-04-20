@@ -63,7 +63,6 @@ class CsrfProtect(CsrfConfig):
         secret_key = secret_key or self._secret_key
         if secret_key is None:
             raise RuntimeError("A secret key must be provided to use CSRF protection")
-        salt = "abobaaboba"
         serializer = URLSafeTimedSerializer(secret_key=secret_key, salt=self._salt)
         token = sha1(urandom(64)).hexdigest()
         signed = serializer.dumps(token)

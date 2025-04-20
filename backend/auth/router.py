@@ -1,3 +1,5 @@
+import os
+
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestFormStrict
@@ -14,11 +16,11 @@ from backend.users.dao_users import UsersDao
 router = APIRouter()
 
 class CsrfSettings(BaseSettings):
-    secret_key: str = "aboba"
+    secret_key: str = os.getenv("SECRET_KEY_CSRF")
     cookie_samesite: str = "strict"
     cookie_secure: bool = True
     httponly: bool = True
-    salt: str = "zhopa_zhopa"
+    salt: str = os.getenv("SALT_CSRF")
 
 @CsrfProtect.load_config
 def get_csrf_config():
