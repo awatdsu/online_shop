@@ -1,5 +1,6 @@
-#SOURCE CODE AND IDEA : https://github.com/aekasitt/fastapi-csrf-protect
-
+"""
+#CREATOR: https://github.com/aekasitt/fastapi-csrf-protect
+"""
 from hashlib import sha1
 from os import urandom
 from re import match
@@ -134,7 +135,7 @@ class CsrfProtect(CsrfConfig):
         if self._token_location == "header":
             token = self.get_csrf_from_headers(request.headers)
         else:
-            raise InvalidHeaderError("Csrf token must be provided in header.")
+            raise InvalidHeaderError("The CSRF token must be provided in header.")
         
         serializer = URLSafeTimedSerializer(secret_key, salt=self._salt)
         try:

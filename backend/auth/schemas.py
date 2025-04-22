@@ -48,8 +48,4 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: str
 
-# class EmailLoginSchema(BaseModel):
-#     model_config = ConfigDict(from_attributes=True)
 
-#     email: EmailStr = Field(default=..., description="Email address")
-#     password: str = Field(...,min_length=8, max_length=50, description="Password, 8 to 50 symbols")

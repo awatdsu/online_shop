@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 # from sqlalchemy.orm import selectinload
 
 from fastapi import HTTPException
@@ -33,6 +33,16 @@ class UsersDao(BaseDao):
                 if not user_to_delete:
                     raise HTTPException(status_code=404, detail="User not found")
                 await session.delete(user_to_delete)
+                await session.commit()
+                return
+            
+    @classmethod
+    async def update_verification(cls, email: str):
+        async with session_maker() as session:
+            async with session.begin():
+                query = update(cls.model).filter_by(email=email).values(is_verificated=True)
+                await session.execute(query)
+                await session.commit()
                 return
             
     # @classmethod

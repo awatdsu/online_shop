@@ -1,6 +1,7 @@
 import os
 import bcrypt
 from fastapi import Request
+
 import jwt
 
 # from hashlib import sha256
@@ -43,5 +44,4 @@ async def authenticate_user(username: str, password: str):
     user = await UsersDao.find_one_or_none(username=username)
     if not user or verify_password(plain_password=password, hashed_password=user.password) is False:
         return False
-    return user
-
+    return user 

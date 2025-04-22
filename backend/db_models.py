@@ -125,6 +125,8 @@ class User(Base):
     created_at: Mapped[datetime.datetime]           = mapped_column(server_default=text("TIMEZONE('utc',now())"))
     password: Mapped[str]                           = mapped_column(String(256), nullable=False)
 
+
+    is_verificated: Mapped[bool]                    = mapped_column(Boolean(), default=False)
     is_blocked: Mapped[bool]                        = mapped_column(Boolean(), default=False)
     role: Mapped[UserRole]                          = mapped_column(default=UserRole.USER)
 

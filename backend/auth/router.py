@@ -3,11 +3,13 @@ import os
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestFormStrict
+from itsdangerous import BadSignature, URLSafeTimedSerializer
 from pydantic_settings import BaseSettings
 
 from backend.auth.csrf_protect import CsrfProtect
 from backend.auth.dependencies import get_current_user
 from backend.auth.schemas import Token, UserRegResponseSchema, UserRegisterSchema
+from backend.auth.tasks import send_confirm_email, send_passw_recovery_email
 from backend.auth.utils import authenticate_user, create_token, generate_fingerprint, hash_password
 from backend.users.dao_users import UsersDao
 # from backend.auth.dao_tokens import UserTokenDao
@@ -65,7 +67,10 @@ async def register_new_user(user_data: UserRegisterSchema, request: Request):
     user_dict.pop("repeat_password")
 
     await UsersDao.add_new_user(**user_dict)
-
+    
+    serializer = URLSafeTimedSerializer(secret_key=os.getenv("SECRET_KEY_CSRF"))
+    confirm_token = serializer.dumps(user_dict["email"])
+    await send_confirm_email(to_email=user_dict["email"], token=confirm_token)
     # fingerprint = generate_fingerprint(request)
     # await UserTokenDao.add_new_user_token_data(
     #     refresh_token=create_token(data={"sub": user_data.username, "device": fingerprint}, expire_time_minutes=60*24*3),
@@ -74,6 +79,28 @@ async def register_new_user(user_data: UserRegisterSchema, request: Request):
     # )
 
     return {'message': "Registration successfull"}
+
+
+@router.get("/register-confirm")
+async def register_confirmation(token:str):
+    serializer = URLSafeTimedSerializer(secret_key=os.getenv("SECRET_KEY_CSRF"))
+    try:
+        email: str = serializer.loads(token, max_age=3600)
+    except BadSignature:  
+        raise HTTPException(  
+            status_code=400, detail="Неверный или просроченный токен"  
+        )
+    await UsersDao.update_verification(email=email)
+    return {'message': 'Verification successfull'}
+
+
+@router.post("/password-recovery")
+async def reset_password(email: str):
+    serializer = URLSafeTimedSerializer(secret_key=os.getenv("SECRET_KEY_CSRF"))
+    password_recovery_token = serializer.dumps(email)
+    await send_passw_recovery_email(to_email=email, token=password_recovery_token)
+    
+# @router.post()
 
 # @router.post("/oauth/refresh")
 # async def refresh_user_token(token: Annotated[str, Depends(oauth2_scheme)], response: Response, request: Request) -> Token:
