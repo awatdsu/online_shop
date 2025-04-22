@@ -45,6 +45,15 @@ class UsersDao(BaseDao):
                 await session.commit()
                 return
             
+    @classmethod
+    async def update_password(cls, email: str, new_passw: str):
+        async with session_maker() as session:
+            async with session.begin():
+                query = update(cls.model).filter_by(email=email).values(password=new_passw)
+                await session.execute(query)
+                await session.commit()
+                return
+            
     # @classmethod
     # async def get_user_with_token(cls, **filter_by):
     #     async with session_maker() as session:

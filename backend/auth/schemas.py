@@ -48,4 +48,16 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: str
 
+class PasswordRecoveryRequest(BaseModel):
+    email: EmailStr
 
+class PasswordRecoveryConfirmRequest(BaseModel):
+    new_password: str
+    new_password_repeat: str
+
+    @field_validator('new_password_repeat', mode='after')
+    @classmethod
+    def check_password_match(cls, value:str, info: ValidationInfo) -> str:
+        if value != info.data['new_password']:
+            raise ValueError("Passwords do not match!")
+        return value

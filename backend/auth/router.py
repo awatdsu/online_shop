@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings
 
 from backend.auth.csrf_protect import CsrfProtect
 from backend.auth.dependencies import get_current_user
-from backend.auth.schemas import Token, UserRegResponseSchema, UserRegisterSchema
+from backend.auth.schemas import PasswordRecoveryConfirmRequest, PasswordRecoveryRequest, Token, UserRegResponseSchema, UserRegisterSchema
 from backend.auth.tasks import send_confirm_email, send_passw_recovery_email
 from backend.auth.utils import authenticate_user, create_token, generate_fingerprint, hash_password
 from backend.users.dao_users import UsersDao
@@ -95,12 +95,25 @@ async def register_confirmation(token:str):
 
 
 @router.post("/password-recovery")
-async def reset_password(email: str):
+async def reset_password(data: PasswordRecoveryRequest):
     serializer = URLSafeTimedSerializer(secret_key=os.getenv("SECRET_KEY_CSRF"))
-    password_recovery_token = serializer.dumps(email)
-    await send_passw_recovery_email(to_email=email, token=password_recovery_token)
+    password_recovery_token = serializer.dumps(data.email)
+    await send_passw_recovery_email(to_email=data.email, token=password_recovery_token)
     
-# @router.post()
+@router.post("/password-recovery-confirm")
+async def password_recovery_confirm(token: str, passwords=PasswordRecoveryConfirmRequest):
+    serializer = URLSafeTimedSerializer(secret_key=os.getenv("SECRET_KEY_CSRF"))
+    try:
+        email: str = serializer.loads(token, max_age=900)
+    except BadSignature:  
+        raise HTTPException(  
+            status_code=400, detail="Неверный или просроченный токен"  
+        )
+    new_passw_hash = hash_password(password=passwords.new_password)
+    await UsersDao.update_password(email=email, new_passw=new_passw_hash)
+    return
+    
+
 
 # @router.post("/oauth/refresh")
 # async def refresh_user_token(token: Annotated[str, Depends(oauth2_scheme)], response: Response, request: Request) -> Token:
