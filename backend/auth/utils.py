@@ -1,18 +1,11 @@
-import os
 import bcrypt
 from fastapi import Request
 
 import jwt
 
-# from hashlib import sha256
-from dotenv import load_dotenv
-
 from datetime import datetime, timedelta, timezone
 
-from backend.users.dao_users import UsersDao
-
-load_dotenv()
-
+from backend.settings import settings
 
 def hash_password(password: str) -> str:
     pwd_bytes = password.encode('utf-8')
@@ -36,12 +29,5 @@ def create_token(data: dict, expire_time_minutes: int) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=expire_time_minutes)
     to_encode.update({"exp": expire})
-    encode_jwt = jwt.encode(to_encode, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
+    encode_jwt = jwt.encode(to_encode, key=settings.jwt_settings.secret_key.get_secret_value(), algorithm=settings.jwt_settings.algorithm)
     return encode_jwt
-
-
-async def authenticate_user(username: str, password: str):
-    user = await UsersDao.find_one_or_none(username=username)
-    if not user or verify_password(plain_password=password, hashed_password=user.password) is False:
-        return False
-    return user 

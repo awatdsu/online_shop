@@ -4,7 +4,7 @@ from email.message import EmailMessage
 from backend.settings import settings
 
 async def send_confirm_email(to_email: str, token:str) -> None:
-    confirm_url = f"http://127.0.0.1:8000/oauth/register-confirm?token={token}"
+    confirm_url = f"http://127.0.0.1:8000/api/v1/auth/register-confirm?token={token}"
     print(confirm_url)
     text = f"""Thank you for registration! For verification, follow the link: {confirm_url}"""
 
@@ -34,7 +34,7 @@ async def send_confirm_email(to_email: str, token:str) -> None:
 
 
 async def send_passw_recovery_email(to_email: str, token:str) -> None:
-    confirm_url = f"http://127.0.0.1:8000/oauth/password-recovery-confirm?token={token}"
+    confirm_url = f"http://127.0.0.1:8000/api/v1/auth/password-recovery-confirm?token={token}"
     print(confirm_url)
     text = f"""For password recovery follow the link: {confirm_url}"""
 

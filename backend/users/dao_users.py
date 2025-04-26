@@ -1,62 +1,42 @@
 from uuid import UUID
 
 from sqlalchemy import select, update
-# from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import HTTPException
 
-from backend.dao_base import BaseDao
-from backend.db_models import User
-from backend.db import session_maker
+from backend.models import User
 
-class UsersDao(BaseDao):
-    model = User
+class UserDao:
 
-    @classmethod
-    async def add_new_user(cls, **user_data):
-        async with session_maker() as session:
-            async with session.begin():
-                new_user = User(**user_data)
-                session.add(new_user)
-                await session.flush()
-                new_user_id = new_user.id
-                await session.commit()
-                return new_user_id
-            
-    @classmethod
-    async def delete_user_by_id(cls, user_id: UUID):
-        async with session_maker() as session:
-            async with session.begin():
-                query = select(cls.model).filter_by(id=user_id)
-                result = await session.execute(query)
-                user_to_delete = result.scalar_one_or_none()
-                if not user_to_delete:
-                    raise HTTPException(status_code=404, detail="User not found")
-                await session.delete(user_to_delete)
-                await session.commit()
-                return
-            
-    @classmethod
-    async def update_verification(cls, email: str):
-        async with session_maker() as session:
-            async with session.begin():
-                query = update(cls.model).filter_by(email=email).values(is_verificated=True)
-                await session.execute(query)
-                await session.commit()
-                return
-            
-    @classmethod
-    async def update_password(cls, email: str, new_passw: str):
-        async with session_maker() as session:
-            async with session.begin():
-                query = update(cls.model).filter_by(email=email).values(password=new_passw)
-                await session.execute(query)
-                await session.commit()
-                return
-            
-    # @classmethod
-    # async def get_user_with_token(cls, **filter_by):
-    #     async with session_maker() as session:
-    #         query = select(cls.model).filter_by(**filter_by).options(selectinload(User.token))
-    #         result = await session.execute(query)
-    #         return result.scalar_one_or_none()
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+
+    async def find_one_or_none(self, **user_data) -> User:
+        query = select(User).filter_by(**user_data)
+        result = await self.session.execute(query)
+        user = result.scalar_one_or_none()
+        return user
+
+    async def add_user(self, **user_data) -> User:
+        new_user = User(**user_data)
+        self.session.add(new_user)
+        return new_user
+    
+    async def delete_user_by_id(self, user_id: UUID):
+        query = select(User).filter_by(id=user_id)
+        result = await self.session.execute(query)
+        user_to_delete = result.scalar_one_or_none()
+        if user_to_delete is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        await self.session.delete(user_to_delete)
+    
+    async def update_verification(self, email:str):
+        query = update(User).filter_by(email=email).values(is_verificated=True)
+        await self.session.execute(query)
+    
+    async def update_password(self, email: str, new_passw: str):
+        query = update(User).filter_by(email=email).values(password=new_passw)
+        await self.session.execute(query)
+
+

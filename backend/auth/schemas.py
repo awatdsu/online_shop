@@ -35,11 +35,12 @@ class UsernameLoginSchema(BaseModel):
     username: str = Field(default=..., min_length=4, max_length=50, description="Username")
     password: str = Field(...,min_length=8, max_length=50, description="Password, 8 to 50 symbols")
 
-class UserRegResponseSchema(BaseModel):
+class UserResponseSchema(BaseModel):
     username: str
     email: EmailStr
     first_name: str
     last_name: str
+    is_verificated: bool = False
 
 class Token(BaseModel):
     access_token: str
@@ -61,3 +62,10 @@ class PasswordRecoveryConfirmRequest(BaseModel):
         if value != info.data['new_password']:
             raise ValueError("Passwords do not match!")
         return value
+    
+class OkResponse(BaseModel):
+    status: str = "OK"
+
+class InvalidTokenResponse(BaseModel):
+    status: str = "Token is invalid or expired!"
+

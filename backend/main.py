@@ -1,8 +1,8 @@
 """/api/v1
-/oauth/token - POST
-/oauth/register - POST
-/oauth/forgot-password - POST
-/oauth/reset-password - POST
+/auth/token - POST
+/auth/register - POST
+/auth/forgot-password - POST
+/auth/reset-password - POST
 
 /users/me - GET
 /users/me - PUT
@@ -44,13 +44,15 @@ sys.path.insert(1, app_dir)
 
 from fastapi import FastAPI#, Request
 from backend.auth.router import router as auth_router
+# from backend.users.router import router as users_router
 # from fastapi.staticfiles import StaticFiles
 
 
 app = FastAPI(docs_url="/docs/api")
 
 # app.mount('/static', StaticFiles(directory='app/static'), 'static')
-app.include_router(prefix="/oauth", router=auth_router)
+app.include_router(prefix="/api/v1/auth", router=auth_router, tags=["API v1/Auth"])
+# app.include_router(prefix="/api/v1/users", router=users_router, tags=["API v1/Users"])
 
 # @app.get("/", response_class=RedirectResponse)
 # def home_page():
